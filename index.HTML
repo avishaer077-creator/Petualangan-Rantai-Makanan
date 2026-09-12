@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Rantai Makanan - Gim Edukasi IPAS Kelas 5 SD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Nunito for child-friendly design -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti for Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            green: '#2e7d32',
+                            lightgreen: '#81c784',
+                            yellow: '#ffca28',
+                            orange: '#ff9800',
+                            sky: '#e0f7fa',
+                            wood: '#8d6e63'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #b2dfdb 100%);
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .font-title {
+            font-family: 'Fredoka', cursive;
+        }
+
+        .card-bounce {
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-bounce:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+        /* Custom scrollbar for game panels */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #81c784;
+            border-radius: 10px;
+        }
+
+        @keyframes pulse-light {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse-btn {
+            animation: pulse-light 2s infinite;
+        }
+
+        .drop-zone {
+            min-height: 90px;
+            border: 3px dashed #a5d6a7;
+            transition: all 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            background-color: #c8e6c9;
+            border-color: #2e7d32;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between p-2 md:p-4">
+
+    <!-- Top Bar Navigation & Status -->
+    <header class="max-w-4xl mx-auto w-full bg-white/90 backdrop-blur-md rounded-2xl p-3 md:p-4 shadow-lg border-2 border-green-300 flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+            <span class="text-3xl md:text-4xl">🌿</span>
+            <div>
+                <h1 class="font-title text-xl md:text-2xl font-bold text-green-800 leading-tight">PETUALANGAN RANTAI MAKANAN</h1>
+                <p class="text-xs md:text-sm text-green-600 font-semibold">IPAS Kelas 5 SD - Memakan & Dimakan</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 md:gap-4">
+            <!-- Audio Toggle -->
+            <button id="audioToggleBtn" onclick="toggleAudio()" class="w-10 h-10 md:w-12 md:h-12 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl flex items-center justify-center text-lg md:text-xl shadow transition active:scale-95" title="Suara On/Off">
+                <i id="audioIcon" class="fas fa-volume-up"></i>
+            </button>
+            
+            <!-- Score & Level Info -->
+            <div class="bg-amber-50 border border-amber-300 rounded-xl px-3 py-1 text-center shadow-sm">
+                <div class="text-xs text-amber-700 font-bold uppercase">Skor Kamu</div>
+                <div id="scoreDisplay" class="font-title text-lg md:text-2xl text-amber-900 font-extrabold">0</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto w-full flex-1 flex flex-col justify-center">
+
+        <!-- SCREEN 0: START / INTRO SCREEN -->
+        <section id="startScreen" class="bg-white/95 rounded-3xl p-6 md:p-8 shadow-xl border-4 border-green-400 text-center max-w-2xl mx-auto my-auto relative overflow-hidden">
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-green-200 rounded-full opacity-50 blur-xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-yellow-200 rounded-full opacity-50 blur-xl"></div>
+
+            <div class="text-6xl md:text-7xl mb-4">🌾 🦗 🐸 🐍 🦅</div>
+            <h2 class="font-title text-3xl md:text-4xl font-extrabold text-green-900 mb-3">Selamat Datang, Petualang Alam!</h2>
+            <p class="text-gray-700 text-base md:text-lg mb-6 leading-relaxed">
+                Bantu menjaga keseimbangan ekosistem dengan menyelesaikan <b>4 Level Tantangan Rantai Makanan</b>. Pelajari peran produsen, konsumen, hingga pengurai!
+            </p>
+
+            <div class="bg-green-50 border-2 border-green-200 rounded-2xl p-4 mb-6 text-left text-sm md:text-base text-green-900 space-y-2">
+                <div class="font-bold text-green-800 border-b border-green-200 pb-1">🎯 Level yang akan kamu hadapi:</div>
+                <div class="flex items-center gap-2"><span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</span> Susun Urutan Rantai Makanan yang Benar</div>
+                <div class="flex items-center gap-2"><span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</span> Kuis Peran (Produsen & Konsumen)</div>
+                <div class="flex items-center gap-2"><span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</span> Kelompokkan Organisme Sesuai Perannya</div>
+                <div class="flex items-center gap-2"><span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span> Selamatkan Ekosistem dari Ketidakseimbangan</div>
+            </div>
+
+            <button onclick="startGame()" class="pulse-btn bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-title text-xl md:text-2xl px-8 py-4 rounded-2xl shadow-lg border-b-4 border-green-800 transition active:scale-95 flex items-center justify-center gap-3 mx-auto">
+                <i class="fas fa-play-circle"></i> Mulai Petualangan!
+            </button>
+        </section>
+
+        <!-- GAMEPLAY PANEL (LEVEL 1-4) -->
+        <section id="gameScreen" class="hidden flex-col gap-4">
+            
+            <!-- Level Indicator & Progress Bar -->
+            <div class="bg-white/90 rounded-2xl p-3 md:p-4 shadow border-2 border-green-200 flex flex-col md:flex-row justify-between items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <span id="levelBadge" class="bg-green-700 text-white font-title px-3 py-1 rounded-full text-sm font-bold">Level 1</span>
+                    <h2 id="levelTitle" class="font-title text-lg md:text-xl font-bold text-slate-800">Susun Rantai Makanan</h2>
+                </div>
+                
+                <!-- Level Stepper Progress -->
+                <div class="flex items-center gap-2 w-full md:w-auto justify-center">
+                    <div id="step1" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-green-600 text-white">1</div>
+                    <div class="w-6 h-1 bg-gray-300 rounded" id="line1"></div>
+                    <div id="step2" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-200 text-gray-600">2</div>
+                    <div class="w-6 h-1 bg-gray-300 rounded" id="line2"></div>
+                    <div id="step3" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-200 text-gray-600">3</div>
+                    <div class="w-6 h-1 bg-gray-300 rounded" id="line3"></div>
+                    <div id="step4" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-200 text-gray-600">4</div>
+                </div>
+            </div>
+
+            <!-- Level Content Dynamic Display -->
+            <div class="bg-white/95 rounded-3xl p-4 md:p-6 shadow-xl border-3 border-green-300 min-h-[420px] flex flex-col justify-between">
+                
+                <!-- Instruction Header -->
+                <div class="mb-4 bg-emerald-50 border-l-4 border-emerald-500 p-3 rounded-r-xl">
+                    <p id="levelInstruction" class="text-slate-700 font-medium text-sm md:text-base">
+                        Instruksi akan tampil di sini.
+                    </p>
+                </div>
+
+                <!-- Dynamic Dynamic Level Play Area -->
+                <div id="playArea" class="flex-1 flex flex-col justify-center items-center py-2">
+                    <!-- Dynamic level content injected via JavaScript -->
+                </div>
+
+                <!-- Level Footer Controls -->
+                <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                    <button id="hintBtn" onclick="showHintModal()" class="text-amber-700 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition">
+                        <i class="fas fa-lightbulb text-amber-500"></i> Petunjuk Belajar
+                    </button>
+
+                    <button id="actionBtn" onclick="checkCurrentLevelAnswer()" class="bg-green-600 hover:bg-green-700 text-white font-title px-6 py-2.5 rounded-xl font-bold shadow-md transition active:scale-95 flex items-center gap-2">
+                        Periksa Jawaban <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SCREEN 5: FINAL SCORE / RECAP SCREEN -->
+        <section id="endScreen" class="hidden bg-white/95 rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-400 text-center max-w-2xl mx-auto my-auto">
+            <div class="text-6xl mb-2">🏆</div>
+            <h2 class="font-title text-3xl md:text-4xl font-extrabold text-green-900 mb-2">Hebat! Petualangan Selesai!</h2>
+            <p class="text-gray-600 font-semibold mb-4">Kamu telah berhasil memahami hubungan Rantai Makanan!</p>
+
+            <!-- Star Rating Badge -->
+            <div id="starContainer" class="flex justify-center gap-3 text-4xl md:text-5xl text-amber-400 mb-4">
+                <i class="fas fa-star drop-shadow"></i>
+                <i class="fas fa-star drop-shadow"></i>
+                <i class="fas fa-star drop-shadow"></i>
+            </div>
+
+            <!-- Score Summary Card -->
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 max-w-md mx-auto">
+                <div class="text-sm font-bold text-amber-800 uppercase tracking-wider">Total Skor Akhir</div>
+                <div id="finalScore" class="font-title text-4xl md:text-5xl font-black text-amber-900 my-1">0</div>
+                <div id="scoreFeedback" class="text-sm font-bold text-green-700 mt-2">Pahlawan Ekosistem Sejati!</div>
+            </div>
+
+            <!-- Learning Summary Recap -->
+            <div class="bg-emerald-50 rounded-2xl p-4 text-left text-xs md:text-sm text-slate-700 mb-6 space-y-2 border border-emerald-200">
+                <div class="font-bold text-emerald-900 border-b border-emerald-200 pb-1">💡 Ringkasan Materi IPAS:</div>
+                <p>🌱 <b>Produsen:</b> Tumbuhan hijau yang menghasilkan makanan sendiri (contoh: Padi, Rumput).</p>
+                <p>🦗 <b>Konsumen I:</b> Hewan pemakan tumbuhan / Herbivora (contoh: Belalang, Kelinci).</p>
+                <p>🐸 <b>Konsumen II & III:</b> Hewan pemakan hewan lain / Karnivora (contoh: Katak, Ular, Elang).</p>
+                <p>🍄 <b>Pengurai:</b> Makhluk hidup yang menguraikan sisa organisme (contoh: Jamur, Bakteri).</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="restartGame()" class="bg-green-600 hover:bg-green-700 text-white font-title px-6 py-3 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fas fa-redo"></i> Main Lagi
+                </button>
+                <button onclick="toggleGithubGuideModal(true)" class="bg-sky-600 hover:bg-sky-700 text-white font-title px-6 py-3 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fab fa-github"></i> Cara Upload ke GitHub Pages
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- EDUCATIONAL FEEDBACK MODAL (SUCCESS/WRONG) -->
+    <div id="feedbackModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 text-center transform transition-all scale-100" id="feedbackBorder">
+            <div id="feedbackIcon" class="text-6xl mb-3">💡</div>
+            <h3 id="feedbackTitle" class="font-title text-2xl font-bold mb-2">Judul Feedback</h3>
+            <p id="feedbackText" class="text-slate-600 text-base mb-6 leading-relaxed">Penjelasan edukatif akan muncul di sini.</p>
+            <button onclick="closeFeedbackModal()" id="feedbackBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-title py-3 rounded-xl text-lg font-bold shadow-md transition active:scale-95">
+                Mengerti & Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <!-- HINT MODAL -->
+    <div id="hintModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-400 text-center">
+            <div class="text-5xl text-amber-500 mb-2"><i class="fas fa-lightbulb"></i></div>
+            <h3 class="font-title text-2xl font-bold text-amber-900 mb-2">Petunjuk Pembelajaran</h3>
+            <p id="hintText" class="text-slate-700 text-sm md:text-base mb-6 text-left leading-relaxed">
+                Petunjuk belajar spesifik level.
+            </p>
+            <button onclick="closeHintModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-title py-3 rounded-xl text-lg font-bold shadow-md transition active:scale-95">
+                Siap, Saya Paham!
+            </button>
+        </div>
+    </div>
+
+    <!-- GITHUB PAGES DEPLOYMENT GUIDE MODAL -->
+    <div id="githubModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border-4 border-sky-400 text-left max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-title text-xl font-bold text-sky-900 flex items-center gap-2">
+                    <i class="fab fa-github"></i> Cara Publikasi di GitHub Pages
+                </h3>
+                <button onclick="toggleGithubGuideModal(false)" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            </div>
+            
+            <ol class="list-decimal list-inside text-sm text-slate-700 space-y-3 font-medium">
+                <li><b>Buat Repositori Baru:</b> Buka <a href="https://github.com" target="_blank" class="text-sky-600 underline">github.com</a>, klik tombol <b>+ (New Repository)</b>. Buka nama misal <code>rantai-makanan-ipas</code>.</li>
+                <li><b>Upload File:</b> Simpan kode ini sebagai file bernama <code>index.html</code>. Upload file <code>index.html</code> tersebut ke repositori GitHub kamu.</li>
+                <li><b>Aktifkan GitHub Pages:</b>
+                    <ul class="list-disc list-inside ml-4 mt-1 text-xs text-slate-600 space-y-1">
+                        <li>Buka menu <b>Settings</b> repositori.</li>
+                        <li>Pilih menu <b>Pages</b> di bilah kiri.</li>
+                        <li>Pada bagian <i>Source</i>, pilih branch <b>main</b> (atau master) dan folder <b>/(root)</b>.</li>
+                        <li>Klik <b>Save</b>.</li>
+                    </ul>
+                </li>
+                <li><b>Selesai!</b> Tunggu 1-2 menit, gim kamu akan langsung online dan bisa dimainkan di HP/Laptop melalui link unik dari GitHub Pages.</li>
+            </ol>
+
+            <button onclick="toggleGithubGuideModal(false)" class="mt-6 w-full bg-sky-600 hover:bg-sky-700 text-white font-title py-2.5 rounded-xl text-base font-bold shadow-md transition">
+                Tutup Panduan
+            </button>
+        </div>
+    </div>
+
+    <footer class="max-w-4xl mx-auto w-full text-center py-2 text-xs text-slate-600 font-semibold">
+        IPAS SD Kelas 5 • Topik A: Memakan & Dimakan • Dibuat dengan HTML5 & Web Audio API
+    </footer>
+
+    <script>
+        /* WEB AUDIO API SOUND SYNTHESIZER (NO EXTERNAL SOUND FILES REQUIRED) */
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            const btn = document.getElementById('audioToggleBtn');
+            if (audioEnabled) {
+                icon.className = 'fas fa-volume-up';
+                btn.className = btn.className.replace('bg-gray-200 text-gray-500', 'bg-amber-100 text-amber-800');
+                playSound('correct');
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                btn.className = btn.className.replace('bg-amber-100 text-amber-800', 'bg-gray-200 text-gray-500');
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+
+                if (type === 'correct') {
+                    // Happy Arpeggio Tone
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc1.type = 'triangle';
+                    osc2.type = 'sine';
+
+                    osc1.frequency.setValueAtTime(523.25, now); // C5
+                    osc1.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc1.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    osc1.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                    osc1.connect(gain);
+                    osc2.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc1.start(now);
+                    osc1.stop(now + 0.5);
+                } else if (type === 'wrong') {
+                    // Low Buzzer Sound
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.setValueAtTime(130, now + 0.15);
+
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'click') {
+                    // Soft Click
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'win') {
+                    // Fanfare Tone
+                    const notes = [523.25, 659.25, 783.99, 1046.50, 880.00, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                        gain.gain.setValueAtTime(0.2, now + idx * 0.12);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.25);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + idx * 0.12);
+                        osc.stop(now + idx * 0.12 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio play suppressed:", e);
+            }
+        }
+    </script>
+
+    <script>
+        /* GAME DATA STRUCTURE AND STATE MANAGEMENT */
+
+        let gameState = {
+            currentLevel: 1,
+            score: 0,
+            levelScores: [0, 0, 0, 0],
+            l1Selected: [],
+            l2CurrentQuestion: 0,
+            l3Classified: {},
+            l4CurrentScenario: 0
+        };
+
+        // Level 1 Datasets: Food Chains
+        const level1Data = {
+            stages: [
+                {
+                    title: "Ekosistem Sawah",
+                    hint: "Rantai makanan dimulai dari Produsen (Padi) -> Konsumen I (Belalang) -> Konsumen II (Katak) -> Konsumen III (Ular) -> Konsumen Puncak (Elang) -> Pengurai (Jamur).",
+                    organisms: [
+                        { id: 'padi', name: 'Padi', emoji: '🌾', role: 'Produsen' },
+                        { id: 'belalang', name: 'Belalang', emoji: '🦗', role: 'Konsumen I' },
+                        { id: 'katak', name: 'Katak', emoji: '🐸', role: 'Konsumen II' },
+                        { id: 'ular', name: 'Ular', emoji: '🐍', role: 'Konsumen III' },
+                        { id: 'elang', name: 'Elang', emoji: '🦅', role: 'Konsumen Puncak' },
+                        { id: 'jamur', name: 'Jamur', emoji: '🍄', role: 'Pengurai' }
+                    ],
+                    correctOrder: ['padi', 'belalang', 'katak', 'ular', 'elang', 'jamur']
+                }
+            ]
+        };
+
+        // Level 2 Questions: Multiple Choice Quiz
+        const level2Questions = [
+            {
+                question: "Manakah organisme di bawah ini yang bertindak sebagai <b>PRODUSEN</b> dalam rantai makanan?",
+                options: [
+                    { text: "🌾 Padi / Tumbuhan Green", correct: true, expl: "Benar! Padi adalah produsen karena bisa membuat makanannya sendiri melalui fotosintesis." },
+                    { text: "🐸 Katak", correct: false, expl: "Katak adalah Konsumen karena tidak bisa membuat makanan sendiri dan memakan belalang." },
+                    { text: "🦅 Elang", correct: false, expl: "Elang adalah Konsumen Puncak (Karnivora)." },
+                    { text: "🍄 Jamur", correct: false, expl: "Jamur adalah Pengurai / Dekomposer." }
+                ],
+                hint: "Produsen adalah makhluk hidup yang mampu membuat makanannya sendiri dengan bantuan sinar matahari."
+            },
+            {
+                question: "Belalang memakan daun padi di sawah. Dalam rantai makanan, Belalang berperan sebagai...",
+                options: [
+                    { text: "🌾 Produsen", correct: false, expl: "Produsen adalah tumbuhan yang membuat makanan sendiri." },
+                    { text: "🦗 Konsumen I (Herbivora)", correct: true, expl: "Tepat sekali! Belalang memakan langsung produsen (tumbuhan), sehingga disebut Konsumen I." },
+                    { text: "🐍 Konsumen III", correct: false, expl: "Konsumen III memakan konsumen sekunder/Karnivora." },
+                    { text: "🍄 Pengurai", correct: false, expl: "Pengurai bertugas menguraikan sisa organisme yang telah mati." }
+                ],
+                hint: "Konsumen I adalah pemakan langsung produsen (tumbuhan) atau disebut juga Herbivora."
+            },
+            {
+                question: "Apa peran utama dari <b>Pengurai / Dekomposer</b> (seperti jamur dan bakteri) di alam?",
+                options: [
+                    { text: "Membuat makanan menggunakan cahaya matahari", correct: false, expl: "Itu adalah tugas produsen (tumbuhan)." },
+                    { text: "Memburu hewan lain untuk dimakan", correct: false, expl: "Itu adalah tugas konsumen karnivora." },
+                    { text: "Menguraikan sisa bangkai makhluk hidup menjadi zat hara tanah", correct: true, expl: "Luar biasa! Pengurai mengembalikan nutrisi ke dalam tanah agar bisa digunakan tumbuhan kembali." },
+                    { text: "Menghasilkan oksigen untuk manusia", correct: false, expl: "Tumbuhan hijau yang menghasilkan oksigen." }
+                ],
+                hint: "Pengurai menghancurkan sisa makhluk hidup yang mati agar nutrisinya kembali menyuburkan tanah."
+            }
+        ];
+
+        // Level 3 Datasets: Organism Drag & Drop Classification
+        const level3Data = {
+            categories: [
+                { id: 'produsen', name: '🌱 Produsen' },
+                { id: 'konsumen1', name: '🦗 Konsumen I (Herbivora)' },
+                { id: 'konsumen2', name: '🐸 Konsumen II/III (Karnivora)' },
+                { id: 'pengurai', name: '🍄 Pengurai' }
+            ],
+            items: [
+                { id: 'item1', name: 'Rumput', emoji: '🌿', category: 'produsen' },
+                { id: 'item2', name: 'Kelinci', emoji: '🐇', category: 'konsumen1' },
+                { id: 'item3', name: 'Ular', emoji: '🐍', category: 'konsumen2' },
+                { id: 'item4', name: 'Padi', emoji: '🌾', category: 'produsen' },
+                { id: 'item5', name: 'Belalang', emoji: '🦗', category: 'konsumen1' },
+                { id: 'item6', name: 'Jamur', emoji: '🍄', category: 'pengurai' },
+                { id: 'item7', name: 'Elang', emoji: '🦅', category: 'konsumen2' },
+                { id: 'item8', name: 'Bakteri Tanah', emoji: '🦠', category: 'pengurai' }
+            ]
+        };
+
+        // Level 4 Datasets: Ecosystem Balance Problem Solving
+        const level4Scenarios = [
+            {
+                scenario: "<b>Kasus 1: Sawah Pak Tani</b><br>Di sawah, petani membasmi seluruh populasi <b>Ular</b> karena takut digigit. Apakah dampak yang terjadi pada rantai makanan?",
+                options: [
+                    {
+                        text: "Populasi Katak dan Belalang berkurang pesat.",
+                        correct: false,
+                        expl: "Kurang tepat. Ular adalah pemangsa Katak. Tanpa Ular, tidak ada yang memakan Katak!"
+                    },
+                    {
+                        text: "Populasi Katak bertambah banyak, sehingga Belalang habis dan tanaman Padi gagal panen!",
+                        correct: true,
+                        expl: "Hebat sekali! Jika pemangsa (Ular) hilang, populasi Katak akan melonjak tajam, memakan habis Belalang dan mengganggu keseimbangan sawah!"
+                    },
+                    {
+                        text: "Padi bertambah sangat subur secara mendadak.",
+                        correct: false,
+                        expl: "Kurang tepat. Hilangnya ular mempengaruhi rantai konsumen di atasnya."
+                    }
+                ],
+                hint: "Pikirkan hubungan pemangsa: Ular memakan Katak. Jika Ular hilang, apa yang terjadi pada jumlah Katak?"
+            },
+            {
+                scenario: "<b>Kasus 2: Kekeringan Panjang</b><br>Terjadi musim kemarau panjang yang membuat <b>Tumbuhan Padi / Rumput</b> layu dan mati. Apa yang paling pertama merasakan dampaknya?",
+                options: [
+                    {
+                        text: "Konsumen I (Herbivora seperti Belalang & Kelinci) kehabisan makanan dan berkurang.",
+                        correct: true,
+                        expl: "Tepat! Karena Produsen adalah sumber energi utama, Konsumen I yang memakan tumbuhan langsung terkena dampak pertama kali!"
+                    },
+                    {
+                        text: "Pengurai langsung kehabisan tempat tinggal.",
+                        correct: false,
+                        expl: "Pengurai tetap menguraikan sisa-sisa organik di tanah."
+                    },
+                    {
+                        text: "Elang akan berganti memakan padi.",
+                        correct: false,
+                        expl: "Elang adalah karnivora, elang tidak memakan padi."
+                    }
+                ],
+                hint: "Siapa yang makan rumput/padi secara langsung? Mereka adalah yang paling cepat kehabisan makanan."
+            }
+        ];
+    </script>
+
+    <script>
+        /* GAME LOGIC ENGINE AND UI RENDERERS */
+
+        function startGame() {
+            playSound('click');
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('flex');
+
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.levelScores = [0, 0, 0, 0];
+            updateScoreDisplay();
+            loadLevel(1);
+        }
+
+        function restartGame() {
+            playSound('click');
+            startGame();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('scoreDisplay').innerText = gameState.score;
+        }
+
+        function loadLevel(levelNum) {
+            gameState.currentLevel = levelNum;
+
+            // Update Progress Steps UI
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                if (i < levelNum) {
+                    stepEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-emerald-500 text-white";
+                    stepEl.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (i === levelNum) {
+                    stepEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-amber-500 text-white ring-4 ring-amber-200";
+                    stepEl.innerText = i;
+                } else {
+                    stepEl.className = "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-200 text-gray-600";
+                    stepEl.innerText = i;
+                }
+            }
+
+            const playArea = document.getElementById('playArea');
+            playArea.innerHTML = '';
+
+            if (levelNum === 1) {
+                renderLevel1();
+            } else if (levelNum === 2) {
+                gameState.l2CurrentQuestion = 0;
+                renderLevel2();
+            } else if (levelNum === 3) {
+                renderLevel3();
+            } else if (levelNum === 4) {
+                gameState.l4CurrentScenario = 0;
+                renderLevel4();
+            }
+        }
+
+        /* -------------------------------------------------------------
+           LEVEL 1: SUSUN RANTAI MAKANAN (CLICK / TAP TO ORDER)
+        ------------------------------------------------------------- */
+        function renderLevel1() {
+            document.getElementById('levelBadge').innerText = "Level 1";
+            document.getElementById('levelTitle').innerText = "Susun Urutan Rantai Makanan";
+            document.getElementById('levelInstruction').innerHTML = "<b>Tugas:</b> Klik/Tap kartu organisme di bawah untuk menyusun urutan rantai makanan yang benar (dari Produsen hingga Pengurai)!";
+            document.getElementById('hintBtn').setAttribute('onclick', `showHint('${level1Data.stages[0].hint.replace(/'/g, "\\'")}')`);
+
+            gameState.l1Selected = [];
+            const data = level1Data.stages[0];
+
+            // Acak organisme untuk pilihan
+            let shuffled = [...data.organisms].sort(() => Math.random() - 0.5);
+
+            const playArea = document.getElementById('playArea');
+            playArea.innerHTML = `
+                <!-- Sequence Slots (Selected) -->
+                <div class="w-full mb-6">
+                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase text-center">Urutan Rantai Makanan Kamu:</div>
+                    <div id="l1Slots" class="flex flex-wrap justify-center gap-2 md:gap-3 min-h-[90px] p-3 bg-emerald-50/70 rounded-2xl border-2 border-emerald-300 items-center">
+                        <span class="text-gray-400 text-sm italic" id="emptySlotMsg">Klik kartu di bawah sesuai urutan memakan & dimakan...</span>
+                    </div>
+                </div>
+
+                <!-- Organism Options (Available) -->
+                <div class="w-full">
+                    <div class="text-xs font-bold text-slate-500 mb-2 uppercase text-center">Pilihan Organisme (Klik untuk memilih):</div>
+                    <div id="l1Options" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                        ${shuffled.map(org => `
+                            <button id="l1-opt-${org.id}" onclick="selectL1Organism('${org.id}')" class="card-bounce bg-white border-2 border-emerald-300 hover:border-emerald-500 rounded-2xl p-3 shadow-md flex flex-col items-center justify-center min-w-[90px] md:min-w-[105px] cursor-pointer">
+                                <span class="text-3xl md:text-4xl mb-1">${org.emoji}</span>
+                                <span class="font-title font-bold text-slate-800 text-xs md:text-sm">${org.name}</span>
+                                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full mt-1">${org.role}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectL1Organism(id) {
+            playSound('click');
+            const data = level1Data.stages[0];
+            const org = data.organisms.find(o => o.id === id);
+
+            if (gameState.l1Selected.includes(id)) {
+                // Deselect if already chosen
+                gameState.l1Selected = gameState.l1Selected.filter(item => item !== id);
+            } else {
+                gameState.l1Selected.push(id);
+            }
+
+            updateL1UI();
+        }
+
+        function updateL1UI() {
+            const data = level1Data.stages[0];
+            const slotsContainer = document.getElementById('l1Slots');
+
+            if (gameState.l1Selected.length === 0) {
+                slotsContainer.innerHTML = `<span class="text-gray-400 text-sm italic" id="emptySlotMsg">Klik kartu di bawah sesuai urutan memakan & dimakan...</span>`;
+            } else {
+                slotsContainer.innerHTML = gameState.l1Selected.map((id, index) => {
+                    const org = data.organisms.find(o => o.id === id);
+                    const arrow = index < gameState.l1Selected.length - 1 ? '<i class="fas fa-arrow-right text-emerald-500 mx-1 text-sm"></i>' : '';
+                    return `
+                        <div class="flex items-center">
+                            <button onclick="selectL1Organism('${org.id}')" class="bg-emerald-600 text-white rounded-xl px-3 py-2 text-xs md:text-sm font-bold flex items-center gap-1.5 shadow">
+                                <span>${org.emoji}</span>
+                                <span>${org.name}</span>
+                                <i class="fas fa-times text-emerald-200 hover:text-white text-xs ml-1"></i>
+                            </button>
+                            ${arrow}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Highlight chosen buttons
+            data.organisms.forEach(org => {
+                const btn = document.getElementById(`l1-opt-${org.id}`);
+                if (btn) {
+                    if (gameState.l1Selected.includes(org.id)) {
+                        btn.classList.add('opacity-40', 'scale-95', 'bg-gray-100');
+                    } else {
+                        btn.classList.remove('opacity-40', 'scale-95', 'bg-gray-100');
+                    }
+                }
+            });
+        }
+
+        function checkLevel1() {
+            const data = level1Data.stages[0];
+            if (gameState.l1Selected.length !== data.correctOrder.length) {
+                playSound('wrong');
+                showFeedback(false, "Urutan Belum Lengkap!", "Pilih semua 6 organisme untuk menyusun rantai makanan yang utuh.");
+                return;
+            }
+
+            let isCorrect = true;
+            for (let i = 0; i < data.correctOrder.length; i++) {
+                if (gameState.l1Selected[i] !== data.correctOrder[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                playSound('correct');
+                gameState.score += 25;
+                gameState.levelScores[0] = 25;
+                updateScoreDisplay();
+                showFeedback(true, "Luar Biasa! Jawaban Benar!", "Urutan rantai makanan tepat: <b>Padi → Belalang → Katak → Ular → Elang → Jamur</b>.", () => {
+                    loadLevel(2);
+                });
+            } else {
+                playSound('wrong');
+                showFeedback(false, "Urutan Masih Kurang Tepat!", "Ingat urutannya: Rantai makanan dimulai dari <b>Produsen (Tumbuhan)</b> → dimakan <b>Konsumen I</b> → dimakan <b>Konsumen II</b> → dimakan <b>Konsumen III</b> → <b>Konsumen Puncak</b> → diuraikan oleh <b>Pengurai</b>.");
+            }
+        }
+
+        /* -------------------------------------------------------------
+           LEVEL 2: KENALI PERANNYA (QUIZ QUESTIONS)
+        ------------------------------------------------------------- */
+        function renderLevel2() {
+            document.getElementById('levelBadge').innerText = "Level 2";
+            document.getElementById('levelTitle').innerText = "Kenali Peran Organisme";
+            const q = level2Questions[gameState.l2CurrentQuestion];
+            document.getElementById('levelInstruction').innerHTML = `<b>Pertanyaan ${gameState.l2CurrentQuestion + 1} dari ${level2Questions.length}:</b> Pahami soal dan pilih jawaban yang paling tepat!`;
+            document.getElementById('hintBtn').setAttribute('onclick', `showHint('${q.hint.replace(/'/g, "\\'")}')`);
+
+            const playArea = document.getElementById('playArea');
+            playArea.innerHTML = `
+                <div class="w-full max-w-xl mx-auto">
+                    <!-- Question Card -->
+                    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 md:p-5 text-center mb-6 shadow-sm">
+                        <p class="text-slate-800 text-base md:text-lg font-bold">${q.question}</p>
+                    </div>
+
+                    <!-- Multiple Choice Options -->
+                    <div class="grid grid-cols-1 gap-3">
+                        ${q.options.map((opt, idx) => `
+                            <button onclick="answerLevel2(${idx})" class="card-bounce w-full bg-white hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-3.5 text-left font-semibold text-slate-700 text-sm md:text-base transition shadow-sm flex items-center justify-between">
+                                <span>${opt.text}</span>
+                                <i class="fas fa-chevron-right text-slate-400"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerLevel2(optIdx) {
+            const q = level2Questions[gameState.l2CurrentQuestion];
+            const selectedOpt = q.options[optIdx];
+
+            if (selectedOpt.correct) {
+                playSound('correct');
+                gameState.score += 10;
+                gameState.levelScores[1] += 10;
+                updateScoreDisplay();
+
+                if (gameState.l2CurrentQuestion < level2Questions.length - 1) {
+                    showFeedback(true, "Jawaban Benar! 🎉", selectedOpt.expl, () => {
+                        gameState.l2CurrentQuestion++;
+                        renderLevel2();
+                    });
+                } else {
+                    showFeedback(true, "Hebat! Level 2 Selesai!", selectedOpt.expl, () => {
+                        loadLevel(3);
+                    });
+                }
+            } else {
+                playSound('wrong');
+                showFeedback(false, "Yuk Coba Lagi!", selectedOpt.expl);
+            }
+        }
+
+        /* -------------------------------------------------------------
+           LEVEL 3: DRAG & DROP / CATEGORY CLASSIFICATION
+        ------------------------------------------------------------- */
+        function renderLevel3() {
+            document.getElementById('levelBadge').innerText = "Level 3";
+            document.getElementById('levelTitle').innerText = "Kelompokkan Organisme";
+            document.getElementById('levelInstruction').innerHTML = "<b>Tugas:</b> Kelompokkan organisme ke dalam wadah perannya masing-masing! (Klik kartu lalu klik wadah tujuan)";
+            document.getElementById('hintBtn').setAttribute('onclick', `showHint('Produsen = Tumbuhan (Padi, Rumput).<br>Konsumen I = Pemakan Tumbuhan (Kelinci, Belalang).<br>Konsumen II/III = Pemakar Daging (Ular, Elang).<br>Pengurai = Jamur & Bakteri.')`);
+
+            gameState.l3Classified = {};
+            level3Data.items.forEach(item => {
+                gameState.l3Classified[item.id] = null; // Unclassified initially
+            });
+
+            renderL3Board();
+        }
+
+        let selectedL3Item = null;
+
+        function renderL3Board() {
+            const playArea = document.getElementById('playArea');
+
+            // Unclassified Items Pool
+            const unassignedItems = level3Data.items.filter(item => !gameState.l3Classified[item.id]);
+
+            playArea.innerHTML = `
+                <div class="w-full flex flex-col gap-4">
+                    <!-- Cards Pool -->
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <div class="text-xs font-bold text-slate-500 mb-2 text-center uppercase">Kartu Organisme (Klik kartu, lalu klik wadah perannya):</div>
+                        <div class="flex flex-wrap justify-center gap-2 min-h-[60px]">
+                            ${unassignedItems.length === 0 ? '<span class="text-xs text-emerald-600 font-bold self-center">Semua organisme telah dimasukkan! Periksa jawabanmu.</span>' : ''}
+                            ${unassignedItems.map(item => `
+                                <button onclick="selectL3Item('${item.id}')" class="card-bounce ${selectedL3Item === item.id ? 'ring-4 ring-amber-400 bg-amber-50' : 'bg-white'} border-2 border-emerald-300 rounded-xl px-3 py-2 shadow-sm flex items-center gap-2 text-xs md:text-sm font-bold text-slate-800">
+                                    <span class="text-xl">${item.emoji}</span>
+                                    <span>${item.name}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Category Buckets -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        ${level3Data.categories.map(cat => {
+                            const assigned = level3Data.items.filter(i => gameState.l3Classified[i.id] === cat.id);
+                            return `
+                                <div onclick="assignL3ItemToCategory('${cat.id}')" class="drop-zone bg-white rounded-2xl p-3 shadow-sm border-2 border-dashed border-emerald-300 hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between">
+                                    <div class="font-title font-bold text-slate-800 text-sm border-b pb-1 mb-2 flex justify-between items-center">
+                                        <span>${cat.name}</span>
+                                        <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${assigned.length}</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5 min-h-[40px]">
+                                        ${assigned.map(item => `
+                                            <span onclick="event.stopPropagation(); removeL3ItemAssignment('${item.id}')" class="bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs px-2 py-1 rounded-lg flex items-center gap-1 font-semibold hover:bg-red-100 hover:text-red-700 hover:border-red-300 transition" title="Klik untuk membatalkan">
+                                                ${item.emoji} ${item.name} <i class="fas fa-times text-[10px]"></i>
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectL3Item(itemId) {
+            playSound('click');
+            selectedL3Item = itemId;
+            renderL3Board();
+        }
+
+        function assignL3ItemToCategory(catId) {
+            if (!selectedL3Item) {
+                showFeedback(false, "Pilih Kartu Terlebih Dahulu!", "Klik salah satu kartu organisme di kotak atas, lalu klik wadah perannya.");
+                return;
+            }
+            playSound('click');
+            gameState.l3Classified[selectedL3Item] = catId;
+            selectedL3Item = null;
+            renderL3Board();
+        }
+
+        function removeL3ItemAssignment(itemId) {
+            playSound('click');
+            gameState.l3Classified[itemId] = null;
+            renderL3Board();
+        }
+
+        function checkLevel3() {
+            const unassigned = level3Data.items.filter(i => !gameState.l3Classified[i.id]);
+            if (unassigned.length > 0) {
+                playSound('wrong');
+                showFeedback(false, "Masih Ada Kartu Tersisa!", "Kelompokkan seluruh 8 organisme ke dalam wadah yang sesuai.");
+                return;
+            }
+
+            let correctCount = 0;
+            level3Data.items.forEach(item => {
+                if (gameState.l3Classified[item.id] === item.category) {
+                    correctCount++;
+                }
+            });
+
+            if (correctCount === level3Data.items.length) {
+                playSound('correct');
+                gameState.score += 25;
+                gameState.levelScores[2] = 25;
+                updateScoreDisplay();
+                showFeedback(true, "Sempurna! Semua Benar!", "Kamu berhasil mengelompokkan Produsen, Konsumen I, Konsumen II/III, dan Pengurai dengan tepat!", () => {
+                    loadLevel(4);
+                });
+            } else {
+                playSound('wrong');
+                showFeedback(false, `Ada ${level3Data.items.length - correctCount} Jawaban Belum Tepat`, "Periksa kembali! Produsen adalah tumbuhan, Konsumen I pemakan tumbuhan, Konsumen II pemakan hewan, dan Pengurai adalah jamur/bakteri.");
+            }
+        }
+
+        /* -------------------------------------------------------------
+           LEVEL 4: SELAMATKAN EKOSISTEM (PROBLEM SOLVING SCENARIOS)
+        ------------------------------------------------------------- */
+        function renderLevel4() {
+            document.getElementById('levelBadge').innerText = "Level 4";
+            document.getElementById('levelTitle').innerText = "Selamatkan Ekosistem";
+            const sc = level4Scenarios[gameState.l4CurrentScenario];
+            document.getElementById('levelInstruction').innerHTML = `<b>Studi Kasus ${gameState.l4CurrentScenario + 1} dari ${level4Scenarios.length}:</b> Pahami masalah gangguan ekosistem dan pilih dampak yang paling tepat!`;
+            document.getElementById('hintBtn').setAttribute('onclick', `showHint('${sc.hint.replace(/'/g, "\\'")}')`);
+
+            const playArea = document.getElementById('playArea');
+            playArea.innerHTML = `
+                <div class="w-full max-w-xl mx-auto">
+                    <!-- Scenario Card -->
+                    <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 md:p-5 mb-6 shadow-sm">
+                        <div class="text-3xl text-center mb-2">⚖️ 🌍</div>
+                        <p class="text-slate-800 text-sm md:text-base leading-relaxed">${sc.scenario}</p>
+                    </div>
+
+                    <!-- Options -->
+                    <div class="grid grid-cols-1 gap-3">
+                        ${sc.options.map((opt, idx) => `
+                            <button onclick="answerLevel4(${idx})" class="card-bounce w-full bg-white hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-400 rounded-2xl p-4 text-left font-semibold text-slate-700 text-sm md:text-base transition shadow-sm flex items-center justify-between">
+                                <span>${opt.text}</span>
+                                <i class="fas fa-arrow-circle-right text-emerald-500 text-lg"></i>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerLevel4(optIdx) {
+            const sc = level4Scenarios[gameState.l4CurrentScenario];
+            const selectedOpt = sc.options[optIdx];
+
+            if (selectedOpt.correct) {
+                playSound('correct');
+                gameState.score += 20;
+                gameState.levelScores[3] += 20;
+                updateScoreDisplay();
+
+                if (gameState.l4CurrentScenario < level4Scenarios.length - 1) {
+                    showFeedback(true, "Analisis Kamu Tepat! 🌟", selectedOpt.expl, () => {
+                        gameState.l4CurrentScenario++;
+                        renderLevel4();
+                    });
+                } else {
+                    showFeedback(true, "Hebat! Semua Kasus Terpecahkan!", selectedOpt.expl, () => {
+                        showFinalRecap();
+                    });
+                }
+            } else {
+                playSound('wrong');
+                showFeedback(false, "Analisis Kurang Tepat", selectedOpt.expl);
+            }
+        }
+
+        /* Check level dispatcher for bottom action button */
+        function checkCurrentLevelAnswer() {
+            if (gameState.currentLevel === 1) {
+                checkLevel1();
+            } else if (gameState.currentLevel === 2) {
+                showFeedback(false, "Pilih Salah Satu Jawaban", "Klik pada salah satu pilihan jawaban yang tersedia di layar.");
+            } else if (gameState.currentLevel === 3) {
+                checkLevel3();
+            } else if (gameState.currentLevel === 4) {
+                showFeedback(false, "Pilih Salah Satu Jawaban", "Klik pada salah satu opsi analisis ekosistem yang tersedia.");
+            }
+        }
+
+        /* -------------------------------------------------------------
+           FINAL RECAP & CELEBRATION
+        ------------------------------------------------------------- */
+        function showFinalRecap() {
+            playSound('win');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('endScreen').classList.remove('hidden');
+
+            document.getElementById('finalScore').innerText = gameState.score;
+
+            // Trigger Confetti
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            // Calculate Stars (Max score ~100)
+            const starContainer = document.getElementById('starContainer');
+            const feedbackText = document.getElementById('scoreFeedback');
+
+            if (gameState.score >= 85) {
+                starContainer.innerHTML = `
+                    <i class="fas fa-star text-amber-400"></i>
+                    <i class="fas fa-star text-amber-400"></i>
+                    <i class="fas fa-star text-amber-400"></i>
+                `;
+                feedbackText.innerText = "🌟 Pahlawan Ekosistem Sejati! Nilai Sempurna!";
+            } else if (gameState.score >= 60) {
+                starContainer.innerHTML = `
+                    <i class="fas fa-star text-amber-400"></i>
+                    <i class="fas fa-star text-amber-400"></i>
+                    <i class="fas fa-star text-slate-300"></i>
+                `;
+                feedbackText.innerText = "👍 Bagus Sekali! Pemahamanmu Sangat Baik!";
+            } else {
+                starContainer.innerHTML = `
+                    <i class="fas fa-star text-amber-400"></i>
+                    <i class="fas fa-star text-slate-300"></i>
+                    <i class="fas fa-star text-slate-300"></i>
+                `;
+                feedbackText.innerText = "💪 Kerja Bagus! Coba Main Lagi Untuk Skor Lebih Tinggi!";
+            }
+        }
+
+        /* -------------------------------------------------------------
+           MODALS & HINTS HELPERS
+        ------------------------------------------------------------- */
+        let feedbackCallback = null;
+
+        function showFeedback(isSuccess, title, text, onConfirm = null) {
+            feedbackCallback = onConfirm;
+            const modal = document.getElementById('feedbackModal');
+            const border = document.getElementById('feedbackBorder');
+            const icon = document.getElementById('feedbackIcon');
+            const titleEl = document.getElementById('feedbackTitle');
+            const textEl = document.getElementById('feedbackText');
+            const btn = document.getElementById('feedbackBtn');
+
+            if (isSuccess) {
+                border.className = "bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-emerald-400 text-center";
+                icon.innerHTML = "🎉";
+                titleEl.className = "font-title text-2xl font-bold mb-2 text-emerald-800";
+                btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-title py-3 rounded-xl text-lg font-bold shadow-md transition active:scale-95";
+            } else {
+                border.className = "bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-400 text-center";
+                icon.innerHTML = "💡";
+                titleEl.className = "font-title text-2xl font-bold mb-2 text-amber-900";
+                btn.className = "w-full bg-amber-500 hover:bg-amber-600 text-white font-title py-3 rounded-xl text-lg font-bold shadow-md transition active:scale-95";
+            }
+
+            titleEl.innerHTML = title;
+            textEl.innerHTML = text;
+            modal.classList.remove('hidden');
+        }
+
+        function closeFeedbackModal() {
+            playSound('click');
+            document.getElementById('feedbackModal').classList.add('hidden');
+            if (feedbackCallback) {
+                const cb = feedbackCallback;
+                feedbackCallback = null;
+                cb();
+            }
+        }
+
+        function showHintModal() {
+            playSound('click');
+            document.getElementById('hintModal').classList.remove('hidden');
+        }
+
+        function showHint(text) {
+            document.getElementById('hintText').innerHTML = text;
+            showHintModal();
+        }
+
+        function closeHintModal() {
+            playSound('click');
+            document.getElementById('hintModal').classList.add('hidden');
+        }
+
+        function toggleGithubGuideModal(show) {
+            playSound('click');
+            const modal = document.getElementById('githubModal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
